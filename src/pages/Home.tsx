@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 
 import { Header } from "../components/Header";
 import { Task, TasksList } from "../components/TasksList";
@@ -8,14 +8,27 @@ import { TodoInput } from "../components/TodoInput";
 export function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  function handleAddTask(newTaskTitle: string) {
+  function handleAddTask(taskTitle: string) {
     if (tasks) {
-      const data = {
-        id: tasks.length + 1,
-        title: newTaskTitle,
-        done: false,
-      };
-      setTasks([...tasks, data]);
+      const verifier = tasks.find((task) => {
+        if (task.title === taskTitle) {
+          return true;
+        }
+      });
+
+      if (!verifier) {
+        const data = {
+          id: tasks.length + 1,
+          title: taskTitle,
+          done: false,
+        };
+        setTasks([...tasks, data]);
+      } else {
+        Alert.alert(
+          "Tarefa já cadastrada",
+          "Você não pode cadastrar uma tarefa com o mesmo nome"
+        );
+      }
     }
   }
 
@@ -30,7 +43,28 @@ export function Home() {
   }
 
   function handleRemoveTask(id: number) {
-    setTasks(tasks.filter((task) => task.id !== id));
+    Alert.alert("Remover tarefa", "Deseja remover esta tarefa?", [
+      {
+        text: "Não",
+        style: "cancel",
+      },
+      {
+        text: "Sim",
+        onPress: () => {
+          setTasks(tasks.filter((task) => task.id !== id));
+        },
+      },
+    ]);
+  }
+
+  function handleEditTask(id: number, newTitle: string) {
+    const newTasks = [...tasks];
+    newTasks.map((task) => {
+      if (task.id === id) {
+        task.title = newTitle;
+      }
+    });
+    setTasks(newTasks);
   }
 
   return (
@@ -43,6 +77,7 @@ export function Home() {
         tasks={tasks}
         toggleTaskDone={handleToggleTaskDone}
         removeTask={handleRemoveTask}
+        editTask={handleEditTask}
       />
     </View>
   );
